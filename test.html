@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Parkour Game Tests</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.4.0/mocha.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.4.0/mocha.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chai/4.3.4/chai.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.124.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #mocha {
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="mocha"></div>
+  <script>
+    mocha.setup('bdd');
+    const { expect } = chai;
+
+    describe('3D Parkour Game', function() {
+      let gameContainer, scorePanel, startBtn, endPanel, characterSelectPanel, player;
+
+      before(function() {
+        // Mock the DOM elements
+        gameContainer = document.createElement('div');
+        gameContainer.id = 'gameContainer';
+        document.body.appendChild(gameContainer);
+
+        scorePanel = document.createElement('div');
+        scorePanel.id = 'scorePanel';
+        document.body.appendChild(scorePanel);
+
+        startBtn = document.createElement('button');
+        startBtn.id = 'startBtn';
+        document.body.appendChild(startBtn);
+
+        endPanel = document.createElement('div');
+        endPanel.id = 'endPanel';
+        document.body.appendChild(endPanel);
+
+        characterSelectPanel = document.createElement('div');
+        characterSelectPanel.id = 'characterSelectPanel';
+        document.body.appendChild(characterSelectPanel);
+
+        // Initialize the game
+        init();
+        initRoleSelection();
+      });
+
+      it('should initialize the game correctly', function() {
+        expect(scene).to.be.an.instanceof(THREE.Scene);
+        expect(camera).to.be.an.instanceof(THREE.PerspectiveCamera);
+        expect(renderer).to.be.an.instanceof(THREE.WebGLRenderer);
+        expect(player).to.be.an.instanceof(THREE.Sprite);
+      });
+
+      it('should display the character selection panel initially', function() {
+        expect(characterSelectPanel.style.display).to.equal('flex');
+        expect(startBtn.style.display).to.equal('none');
+      });
+
+      it('should allow selecting a character', function() {
+        const roleItems = document.querySelectorAll('.roleItem');
+        expect(roleItems.length).to.equal(3);
+
+        roleItems[0].click();
+        expect(currentRole.name).to.equal('Taritsu');
+        expect(document.getElementById('confirmRoleBtn').style.display).to.equal('inline-block');
+      });
+
+      it('should start the game when a character is selected and start button is clicked', function() {
+        document.getElementById('confirmRoleBtn').click();
+        expect(characterSelectPanel.style.display).to.equal('none');
+        expect(startBtn.style.display).to.equal('block');
+
+        startBtn.click();
+        expect(gameIsRunning).to.be.true;
+        expect(score).to.equal(0);
+      });
+
+      it('should end the game when player collides with an obstacle', function() {
+        // Mock an obstacle and set its position to collide with the player
+        const obstacle = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshPhongMaterial());
+        obstacle.position.set(0, 0.5, 15);
+        scene.add(obstacle);
+        obstacles.push(obstacle);
+
+        gameLoop();
+        expect(gameIsRunning).to.be.false;
+        expect(endPanel.style.display).to.equal('block');
+      });
+
+      after(function() {
+        // Clean up the DOM
+        document.body.removeChild(gameContainer);
+        document.body.removeChild(scorePanel);
+        document.body.removeChild(startBtn);
+        document.body.removeChild(endPanel);
+        document.body.removeChild(characterSelectPanel);
+      });
+    });
+
+    mocha.run();
+  </script>
+  <script src="index.js"></script>
+</body>
+</html>
